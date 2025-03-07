@@ -1,0 +1,33 @@
+---
+- name: Playbook de teste para o pessoal
+  hosts: ad01 
+  vars:
+    ansible_connection: winrm
+    ansible_user: administrator 
+    ansible_password: redhat@123
+    ansible_port: 5985
+    ansible_winrm_transport: ntlm
+    usuario_espelho: Joao Ferreira
+  tasks:
+    - name: Consulta usuario espelho no AD
+      microsoft.ad.object_info:
+        ldap_filter: (&(Name={{ usuario_espelho }}))
+        properties:
+          - DistinguishedName
+          - MemberOf
+        search_base: DC=jferre,DC=local
+      register: info_usr_espelho
+
+    - name: Obter OU e grupos do usuário
+      set_fact:
+        ou_usr_espelho: "{{ ((info_usr_espelho.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
+        gp_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='MemberOf') }}"
+
+    - name: Cria um novo usuário no AD com base no usuário espelho
+      microsoft.ad.user:
+        identity: NewUser
+        password: redhat@123
+        state: present
+        path: "{{ ou_usr_espelho }}"
+        groups:
+          set: "{{ gp_usr_espelho }}"
