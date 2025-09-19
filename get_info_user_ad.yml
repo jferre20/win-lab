@@ -1,0 +1,30 @@
+---
+- name: Playbook de teste para o pessoal
+  gather_facts: false
+  hosts: ad01.jferre.local
+  vars:
+    ansible_connection: winrm
+    ansible_user: administrator 
+    ansible_password: redhat@123
+    ansible_port: 5985
+    ansible_winrm_transport: ntlm
+    usuario_espelho: Joao Ferreira
+  tasks:
+    - name: Consulta usuario espelho no AD
+      microsoft.ad.object_info:
+        identity: "CN={{ usuario_espelho }},CN=Users,DC=jferre,DC=local"
+        properties:
+          - "name"
+          - "description"
+        #search_base: DC=jferre,DC=local
+      register: info_usr_espelho
+
+    - name: Get description
+      ansible.builtin.set_fact:
+        user_description: "{{ info_usr_espelho.objects | map(attribute='Description') }}"
+
+    - name: Lock account when description is filled
+      microsoft.ad.user:
+        identity: "CN={{ usuario_espelho }},CN=Users,DC=jferre,DC=local"
+        enabled: false
+      when: user_description | regex_search('Using')
