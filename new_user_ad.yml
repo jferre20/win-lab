@@ -1,5 +1,6 @@
 ---
 - name: Playbook de teste para o pessoal
+  gather_facts: false
   hosts: ad01 
   vars:
     ansible_connection: winrm
@@ -23,11 +24,23 @@
         ou_usr_espelho: "{{ ((info_usr_espelho.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
         gp_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='MemberOf') }}"
 
+    - debug:
+        msg: "{{ item }}"
+      with_items:
+        - "{{ ou_usr_espelho }}"
+        - "{{ gp_usr_espelho }}"
+
     - name: Cria um novo usuário no AD com base no usuário espelho
       microsoft.ad.user:
-        identity: NewUser
+        identity: "{{ NewUser }}"
         password: redhat@123
         state: present
         path: "{{ ou_usr_espelho }}"
         groups:
           set: "{{ gp_usr_espelho }}"
+        attributes:
+          set:
+            adminDescription: "User created with success via Ansible Automation Platform 2.5"
+            #extensionAttribute10: "JOAO"
+            #extensionAttribute11: "FERREIRA"
+            #extensionAttribute12: "joao.ferreira@jferre.local"
