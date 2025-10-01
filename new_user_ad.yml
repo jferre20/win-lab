@@ -3,11 +3,11 @@
   gather_facts: false
   hosts: ad01 
   vars:
-    ansible_connection: winrm
-    ansible_user: administrator 
-    ansible_password: redhat@123
-    ansible_port: 5985
-    ansible_winrm_transport: ntlm
+    #ansible_connection: winrm
+    #ansible_user: administrator 
+    #ansible_password: redhat@123
+    #ansible_port: 5985
+    #ansible_winrm_transport: ntlm
     usuario_espelho: Joao Ferreira
   tasks:
     - name: Consulta usuario espelho no AD
