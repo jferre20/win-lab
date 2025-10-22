@@ -44,7 +44,7 @@
           set: "{{ gp_usr_espelho }}"
         attributes:
           set:
-            adminDescription: "User created with success via Ansible Automation Platform 2.5"
+            Description: "User created with success via Ansible Automation Platform 2.5"
             #extensionAttribute10: "JOAO"
             #extensionAttribute11: "FERREIRA"
             #extensionAttribute12: "joao.ferreira@jferre.local"
