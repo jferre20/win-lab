@@ -36,6 +36,7 @@
         firstname: "{{ firstname }}"
         lastname: "{{ lastname }}"
         email: "{{ email }}"
+        display_name: "{{ display_name }}"
         password: redhat@123
         state: present
         path: "{{ ou_usr_espelho }}"
