@@ -1,7 +1,7 @@
 ---
 - name: Playbook de teste para o pessoal
   gather_facts: false
-  hosts: ad01 
+  hosts: all
   vars:
     #ansible_connection: winrm
     #ansible_user: administrator 
@@ -16,19 +16,31 @@
         properties:
           - DistinguishedName
           - MemberOf
+          - Title
+          - Department
+          - Description
         search_base: DC=jferre,DC=local
       register: info_usr_espelho
+
+    - debug:
+        var: info_usr_espelho
 
     - name: Obter OU e grupos do usuário
       set_fact:
         ou_usr_espelho: "{{ ((info_usr_espelho.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
         gp_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='MemberOf') }}"
+        tt_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='Title') }}"
+        dpt_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='Department') }}"
+        desc_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='Description') }}"
 
     - debug:
         msg: "{{ item }}"
       with_items:
         - "{{ ou_usr_espelho }}"
         - "{{ gp_usr_espelho }}"
+        - "{{ tt_usr_espelho }}"
+        - "{{ dpt_usr_espelho }}"
+        - "{{ desc_usr_espelho }}"
 
     - name: Cria um novo usuário no AD com base no usuário espelho
       microsoft.ad.user:
@@ -44,7 +56,19 @@
           set: "{{ gp_usr_espelho }}"
         attributes:
           set:
-            Description: "User created with success via Ansible Automation Platform 2.5"
+            #extensionAttribute1: office365
             #extensionAttribute10: "JOAO"
             #extensionAttribute11: "FERREIRA"
             #extensionAttribute12: "joao.ferreira@jferre.local"
+            #accountExpires: validar formato de data
+            #manager: gerente quando for empregado
+            Description: "{{ desc_usr_espelho }}"
+            Department: "{{ dpt_usr_espelho }}"
+            title: "{{ tt_usr_espelho }}" 
+            userPrincipalName: "{{ email }}"
+
+    - name: Define data de expiração para o novo usuário no AD
+      ansible.windows.win_user:
+        name: "{{ NewUser }}"
+        state: present
+        account_expires: '{{ "%Y-%m-%dT%H:%M:%S%z" | ansible.builtin.strftime(now().timestamp() + (60 * 60 * 24 * 60)) }}'
