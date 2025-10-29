@@ -1,3 +1,4 @@
+# https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_user_module.html
 ---
 - name: Playbook de teste para o pessoal
   gather_facts: false
