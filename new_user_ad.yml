@@ -20,27 +20,27 @@
           - Department
           - Description
         search_base: DC=jferre,DC=local
-      register: info_usr_espelho
+      register: baseuser_info
 
     - debug:
-        var: info_usr_espelho
+        var: baseuser_info
 
     - name: Obter OU e grupos do usuário
       set_fact:
-        ou_usr_espelho: "{{ ((info_usr_espelho.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
-        gp_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='MemberOf') }}"
-        tt_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='Title') }}"
-        dpt_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='Department') }}"
-        desc_usr_espelho: "{{ info_usr_espelho.objects | map(attribute='Description') }}"
+        ou_info: "{{ ((baseuser_info.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
+        groups_info: "{{ baseuser_info.objects | map(attribute='MemberOf') }}"
+        title_info: "{{ baseuser_info.objects | map(attribute='Title') }}"
+        department_info: "{{ baseuser_info.objects | map(attribute='Department') }}"
+        description_info: "{{ baseuser_info.objects | map(attribute='Description') }}"
 
     - debug:
         msg: "{{ item }}"
       with_items:
-        - "{{ ou_usr_espelho }}"
-        - "{{ gp_usr_espelho }}"
-        - "{{ tt_usr_espelho }}"
-        - "{{ dpt_usr_espelho }}"
-        - "{{ desc_usr_espelho }}"
+        - "{{ ou_info }}"
+        - "{{ groups_info }}"
+        - "{{ title_info }}"
+        - "{{ department_info }}"
+        - "{{ description_info }}"
 
     - name: Cria um novo usuário no AD com base no usuário espelho
       microsoft.ad.user:
@@ -51,9 +51,9 @@
         display_name: "{{ firstname }} {{ lastname }}"
         password: redhat@123
         state: present
-        path: "{{ ou_usr_espelho }}"
+        path: "{{ ou_info }}"
         groups:
-          set: "{{ gp_usr_espelho }}"
+          set: "{{ groups_info }}"
         attributes:
           set:
             #extensionAttribute1: office365
@@ -62,13 +62,13 @@
             #extensionAttribute12: "joao.ferreira@jferre.local"
             #accountExpires: validar formato de data
             #manager: gerente quando for empregado
-            Description: "{{ desc_usr_espelho }}"
-            Department: "{{ dpt_usr_espelho }}"
-            title: "{{ tt_usr_espelho }}" 
+            Description: "{{ description_info }}"
+            Department: "{{ department_info }}"
+            title: "{{ title_info }}" 
             userPrincipalName: "{{ email }}"
 
     - name: Define data de expiração para o novo usuário no AD
       ansible.windows.win_user:
-        name: "{{ NewUser }}"
+        name: "{{ NewUser }}" 
         state: present
         account_expires: '{{ "%Y-%m-%dT%H:%M:%S%z" | ansible.builtin.strftime(now().timestamp() + (60 * 60 * 24 * 60)) }}'
