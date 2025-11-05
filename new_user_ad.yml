@@ -23,16 +23,13 @@
         search_base: DC=jferre,DC=local
       register: baseuser_info
 
-    - debug:
-        var: baseuser_info
-
     - name: Obter OU e grupos do usuário
       set_fact:
         ou_info: "{{ ((baseuser_info.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
         groups_info: "{{ baseuser_info.objects | map(attribute='MemberOf') }}"
-        #title_info: "{{ baseuser_info.objects | map(attribute='Title') }}"
-        department_info: "{{ baseuser_info.objects | map(attribute='Department') }}"
-        description_info: "{{ baseuser_info.objects | map(attribute='Description') }}"
+        #title_info: "{{ (baseuser_info.objects | map(attribute='Title'))[0] }}"
+        department_info: "{{ (baseuser_info.objects | map(attribute='Department'))[0] }}"
+        description_info: "{{ (baseuser_info.objects | map(attribute='Description'))[0] }}"
 
     - debug:
         msg: "{{ item }}"
