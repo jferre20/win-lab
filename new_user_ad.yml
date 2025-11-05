@@ -17,7 +17,7 @@
         properties:
           - DistinguishedName
           - MemberOf
-          - Title
+          #- Title
           - Department
           - Description
         search_base: DC=jferre,DC=local
@@ -30,7 +30,7 @@
       set_fact:
         ou_info: "{{ ((baseuser_info.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
         groups_info: "{{ baseuser_info.objects | map(attribute='MemberOf') }}"
-        title_info: "{{ baseuser_info.objects | map(attribute='Title') }}"
+        #title_info: "{{ baseuser_info.objects | map(attribute='Title') }}"
         department_info: "{{ baseuser_info.objects | map(attribute='Department') }}"
         description_info: "{{ baseuser_info.objects | map(attribute='Description') }}"
 
@@ -39,17 +39,17 @@
       with_items:
         - "{{ ou_info }}"
         - "{{ groups_info }}"
-        - "{{ title_info }}"
+        #- "{{ title_info }}"
         - "{{ department_info }}"
         - "{{ description_info }}"
 
     - name: Cria um novo usuário no AD com base no usuário espelho
       microsoft.ad.user:
         identity: "{{ NewUser }}"
-        firstname: "{{ firstname }}"
-        lastname: "{{ lastname }}"
-        email: "{{ email }}"
-        display_name: "{{ firstname }} {{ lastname }}"
+        #firstname: "{{ firstname }}"
+        #lastname: "{{ lastname }}"
+        #email: "{{ email }}"
+        #display_name: "{{ firstname }} {{ lastname }}"
         password: redhat@123
         state: present
         path: "{{ ou_info }}"
@@ -62,11 +62,10 @@
             #extensionAttribute11: "FERREIRA"
             #extensionAttribute12: "joao.ferreira@jferre.local"
             #accountExpires: validar formato de data
-            #manager: gerente quando for empregado
-            Description: "{{ description_info }}"
+            Description: "{{ description_info }} - Chamado {{ case_number }}"
             Department: "{{ department_info }}"
-            title: "{{ title_info }}" 
-            userPrincipalName: "{{ email }}"
+            #Title: "{{ title_info }}" 
+            #userPrincipalName: "{{ email }}"
 
     - name: Define data de expiração para o novo usuário no AD
       ansible.windows.win_user:
