@@ -43,7 +43,6 @@
     - name: Cria um novo usuário no AD com base no usuário espelho
       microsoft.ad.user:
         identity: "{{ NewUser }}"
-        name: "{{ NewUser }}" # TIRAR
         #firstname: "{{ firstname }}"
         #lastname: "{{ lastname }}"
         #email: "{{ email }}"
