@@ -47,6 +47,7 @@
         #lastname: "{{ lastname }}"
         #email: "{{ email }}"
         #display_name: "{{ firstname }} {{ lastname }}"
+        state: present
         password: redhat@123
         #state: present
         path: "{{ ou_info }}"
