@@ -65,8 +65,14 @@
             #Title: "{{ title_info }}" 
             #userPrincipalName: "{{ email }}"
 
-    - ansible.builtin.shell: 'date -d "{{ date_expire }} +2 days" +%Y-%m-%d'
+    #- ansible.builtin.shell: 'date -d "{{ date_expire }} +2 days" +%Y-%m-%d'
+    #  register: new_date
+
+    - ansible.builtin.win_shell: '$data=Get-Date "{{ date_expire }}"; ($data).AddDays(2).ToString("yyyy-MM-dd")'
       register: new_date
+
+    - debug:
+        var: new_date
 
     - name: Define data de expiração para o novo usuário no AD
       ansible.windows.win_user:
