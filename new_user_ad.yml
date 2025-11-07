@@ -64,12 +64,14 @@
             Department: "{{ department_info }}"
             #Title: "{{ title_info }}" 
             #userPrincipalName: "{{ email }}"
-            accountExpires: "{{ date_expire | to_datetime('%Y-%m-%d') }}"
 
-    #- name: Define data de expiração para o novo usuário no AD
-    #  ansible.windows.win_user:
-    #    name: "{{ NewUser }}" 
-    #    state: present
-    #    #account_expires: '{{ "%Y-%m-%dT%H:%M:%S%z" | ansible.builtin.strftime(now().timestamp() + (60 * 60 * 24 * 60)) }}'
-    #    account_expires: "{{ date_expire | ansible.builtin.strftime | default('never') }}"
-    #    password_expired: true
+    - ansible.builtin.shell: 'date -d "{{ date_expire }} +2 days" +%Y-%m-%d'
+      register: new_date
+
+    - name: Define data de expiração para o novo usuário no AD
+      ansible.windows.win_user:
+        name: "{{ NewUser }}" 
+        state: present
+        #account_expires: '{{ "%Y-%m-%dT%H:%M:%S%z" | ansible.builtin.strftime(now().timestamp() + (60 * 60 * 24 * 60)) }}'
+        account_expires: "{{ new_date.stdout | ansible.builtin.strftime | default('never') }}"
+        password_expired: true
