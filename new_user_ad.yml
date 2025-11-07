@@ -68,16 +68,16 @@
     #- ansible.builtin.shell: 'date -d "{{ date_expire }} +2 days" +%Y-%m-%d'
     #  register: new_date
 
-    - ansible.builtin.win_shell: '$data=Get-Date "{{ date_expire }}"; ($data).AddDays(2).ToString("yyyy-MM-dd")'
+    - ansible.windows.win_shell: '$data=Get-Date "{{ date_expire }}"; ($data).AddDays(2).ToString("yyyy-MM-dd")'
       register: new_date
 
-    - debug:
-        var: new_date
+    - set_fact:
+        date_expire: "{{ new_date.stdout_lines[0] }}"
 
     - name: Define data de expiração para o novo usuário no AD
       ansible.windows.win_user:
         name: "{{ NewUser }}" 
         state: present
         #account_expires: '{{ "%Y-%m-%dT%H:%M:%S%z" | ansible.builtin.strftime(now().timestamp() + (60 * 60 * 24 * 60)) }}'
-        account_expires: "{{ new_date.stdout | ansible.builtin.strftime | default('never') }}"
+        account_expires: "{{ date_expire | ansible.builtin.strftime | default('never') }}"
         password_expired: true
