@@ -70,5 +70,5 @@
         name: "{{ NewUser }}" 
         state: present
         #account_expires: '{{ "%Y-%m-%dT%H:%M:%S%z" | ansible.builtin.strftime(now().timestamp() + (60 * 60 * 24 * 60)) }}'
-        account_expires: "{{ date_expire | default('never') }}"
+        account_expires: "{{ date_expire | ansible.builtin.to_datetime('%Y-%m-%d') | default('never') }}"
         password_expired: true
