@@ -62,7 +62,7 @@
             #accountExpires: validar formato de data
             Description: "{{ description_info }} - Chamado {{ case_number }}"
             Department: "{{ department_info }}"
-            Title: "{{ title_info | default('') }}" 
+            Title: "{{ title_info | default(omit) }}" 
             #userPrincipalName: "{{ email }}"
 
     #- ansible.builtin.shell: 'date -d "{{ date_expire }} +2 days" +%Y-%m-%d'
