@@ -4,6 +4,17 @@
   gather_facts: false
   hosts: all
   vars:
+
+    atributos:    
+      terceiro:    
+        Description: "{{ description_info }}"
+        #extensionAttribute1: office365
+        #extensionAttribute10: "JOAO"
+        #extensionAttribute11: "FERREIRA"
+        #extensionAttribute12: "joao.ferreira@jferre.local"
+      interno:
+        Title: "{{ title_info }}"
+
     #ansible_connection: winrm
     #ansible_user: administrator 
     #ansible_password: redhat@123
@@ -17,7 +28,7 @@
         properties:
           - DistinguishedName
           - MemberOf
-          #- Title
+          - Title
           - Department
           - Description
         search_base: DC=jferre,DC=local
@@ -27,59 +38,40 @@
       set_fact:
         ou_info: "{{ ((baseuser_info.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
         groups_info: "{{ baseuser_info.objects | map(attribute='MemberOf') }}"
-        #title_info: "{{ (baseuser_info.objects | map(attribute='Title'))[0] }}"
+        title_info: "{{ (baseuser_info.objects | map(attribute='Title'))[0] }}"
         department_info: "{{ (baseuser_info.objects | map(attribute='Department'))[0] }}"
         description_info: "{{ (baseuser_info.objects | map(attribute='Description'))[0] }}"
-
-    - debug:
-        msg: "{{ item }}"
-      with_items:
-        - "{{ ou_info }}"
-        - "{{ groups_info }}"
-        #- "{{ title_info }}"
-        - "{{ department_info }}"
-        - "{{ description_info }}"
 
     - name: Cria um novo usuário no AD com base no usuário espelho
       microsoft.ad.user:
         identity: "{{ NewUser }}"
-        #firstname: "{{ firstname }}"
-        #lastname: "{{ lastname }}"
-        #email: "{{ email }}"
-        #display_name: "{{ firstname }} {{ lastname }}"
+        firstname: "{{ (fullname | split(' '))[0] }}" 
+        lastname: "{{ (fullname | split(' '))[-1] }}" 
+        display_name: "{{ fullname }}"
+        email: "{{ email }}"
         state: present
         password: redhat@123
-        #state: present
         path: "{{ ou_info }}"
         groups:
           set: "{{ groups_info }}"
         attributes:
-          set:
-            #extensionAttribute1: office365
-            #extensionAttribute10: "JOAO"
-            #extensionAttribute11: "FERREIRA"
-            #extensionAttribute12: "joao.ferreira@jferre.local"
-            #accountExpires: validar formato de data
-            Description: "{{ description_info }} - Chamado {{ case_number }}"
-            Department: "{{ department_info }}"
-            #Title: "{{ title_info | default(omit) }}" 
-            #userPrincipalName: "{{ email }}"
+          set: "{{ atributos[profile] }}" 
 
-    #- ansible.builtin.shell: 'date -d "{{ date_expire }} +2 days" +%Y-%m-%d'
-    #  register: new_date
+    - block:
 
-    - name: Increase 2 days in date
-      ansible.windows.win_shell: '$data=Get-Date "{{ date_expire_account }}"; ($data).AddDays(2).ToString("yyyy-MM-dd")'
-      register: new_date
+        - name: Increase 2 days in date
+          ansible.windows.win_shell: '$data=Get-Date "{{ date_expire_account }}"; ($data).AddDays(2).ToString("yyyy-MM-dd")'
+          register: new_date
 
-    - name: Get new date
-      set_fact:
-        date_expire: "{{ new_date.stdout_lines[0] }}"
+        - name: Get new date
+          set_fact:
+            date_expire: "{{ new_date.stdout_lines[0] }}"
+
+      when: profile is defined and profile == "terceiro"
 
     - name: Define data de expiração para o novo usuário no AD
       ansible.windows.win_user:
         name: "{{ NewUser }}" 
         state: present
-        #account_expires: '{{ "%Y-%m-%dT%H:%M:%S%z" | ansible.builtin.strftime(now().timestamp() + (60 * 60 * 24 * 60)) }}'
-        account_expires: "{{ date_expire | ansible.builtin.strftime | default('never') }}"
+        account_expires: "{{ date_expire | default('never') }}"
         password_expired: true
