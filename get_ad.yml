@@ -8,4 +8,4 @@
 
     - name: Ver o resultado do script na tela
       ansible.builtin.debug:
-        var: script_result.stdout
+        var: script_result
