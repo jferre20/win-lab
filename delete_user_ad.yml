@@ -43,4 +43,5 @@
       microsoft.ad.user:
         name: "{{ user }}" 
         path: OU=Desativados,DC=jferre,DC=local
+        identity: '{{ user_obj.sid }}'
         state: present
