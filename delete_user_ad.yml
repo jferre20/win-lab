@@ -1,0 +1,46 @@
+# https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_user_module.html
+---
+- name: Playbook de teste para o pessoal
+  gather_facts: false
+  hosts: all
+  tasks:
+    - name: Consulta usuario espelho no AD
+      microsoft.ad.object_info:
+        ldap_filter: (&(Name={{ user }}))
+        properties:
+          - DistinguishedName
+          - MemberOf
+          - Title
+          - Department
+          - Description
+        search_base: DC=jferre,DC=local
+      register: baseuser_info
+
+    - name: Obter OU e grupos do usuário
+      set_fact:
+        ou_info: "{{ ((baseuser_info.objects | map(attribute='DistinguishedName'))[0] | split(','))[1:] | join(',') }}"
+        groups_info: "{{ baseuser_info.objects | map(attribute='MemberOf') }}"
+        title_info: "{{ (baseuser_info.objects | map(attribute='Title'))[0] }}"
+        department_info: "{{ (baseuser_info.objects | map(attribute='Department'))[0] }}"
+        description_info: "{{ (baseuser_info.objects | map(attribute='Description'))[0] }}"
+
+    #- name: Desativa usuário no AD 
+    #  microsoft.ad.user:
+    #    identity: "{{ User }}"
+    #    firstname: "{{ (fullname | split(' '))[0] }}" 
+    #    lastname: "{{ (fullname | split(' '))[-1] }}" 
+    #    display_name: "{{ fullname }}"
+    #    email: "{{ email }}"
+    #    state: present
+    #    password: redhat@123
+    #    path: "{{ ou_info }}"
+    #    groups:
+    #      set: "{{ groups_info }}"
+    #    attributes:
+    #      set: "{{ atributos[profile] }}" 
+
+    - name: Move user object to different OU
+      microsoft.ad.user:
+        name: user
+        path: OU=Desativados,DC=jferre,DC=local
+        state: present
