@@ -41,6 +41,6 @@
 
     - name: Move user object to different OU
       microsoft.ad.user:
-        name: user
+        name: "{{ user }}" 
         path: OU=Desativados,DC=jferre,DC=local
         state: present
