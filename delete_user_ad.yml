@@ -24,24 +24,9 @@
         department_info: "{{ (baseuser_info.objects | map(attribute='Department'))[0] }}"
         description_info: "{{ (baseuser_info.objects | map(attribute='Description'))[0] }}"
 
-    #- name: Desativa usuário no AD 
-    #  microsoft.ad.user:
-    #    identity: "{{ User }}"
-    #    firstname: "{{ (fullname | split(' '))[0] }}" 
-    #    lastname: "{{ (fullname | split(' '))[-1] }}" 
-    #    display_name: "{{ fullname }}"
-    #    email: "{{ email }}"
-    #    state: present
-    #    password: redhat@123
-    #    path: "{{ ou_info }}"
-    #    groups:
-    #      set: "{{ groups_info }}"
-    #    attributes:
-    #      set: "{{ atributos[profile] }}" 
-
-    - name: Move user object to different OU
+    - name: Desativa usuário no AD 
       microsoft.ad.user:
-        name: "{{ user }}" 
-        enabled: false
+        identity: "{{ user }}"
+        enabled: false 
         path: OU=Desativados,DC=jferre,DC=local
         state: present
